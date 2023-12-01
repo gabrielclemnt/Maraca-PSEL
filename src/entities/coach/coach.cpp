@@ -63,9 +63,9 @@ void Coach::runCoach() {
         Player *player = playerOpt.value();
         if (player -> getPosition().distanceToPoint(ballPosition) <= (ROBOT_RADIUS + BALL_RADIUS)){ //verifica se player está próximo da bola
             player -> goTo(ballPosition); //move o jogador até a bola
-            player -> rotateTo(getWorldMap()->theirGoalCenter()); //faz o jogador girar até o centro do gol
+            player -> rotateTo(getWorldMap()->ourGoalCenter()); //faz o jogador girar até o centro do gol
             player -> dribble(false);
-            player -> kick (7.0f, true);
+            player -> kick (8.0f, true);
         } else if (player -> getPosition().distanceToPoint(ballPosition) <= ((2* BALL_DIAMETER) + (2 * ROBOT_DIAMETER))){ //verifica se o jogador está numa posição intermediária entre a bola e o gol
             QVector2D behindBall = ballPosition + ((ballPosition - getWorldMap() -> theirGoalCenter()).normalized()*(ROBOT_RADIUS + BALL_RADIUS)); //calcula uma posição atrás da bola entre a bola e o centro do gol
             player -> goTo(behindBall); //move o jogador para a posição calculada da bola
@@ -73,7 +73,7 @@ void Coach::runCoach() {
 
         } else { //Se o jogador não estiver nem perto da bola nem em uma posição intermediária.
             if (ballPosition.x() > 0.0f){ //Verifica se a bola está do lado direito do campo.
-                player -> goTo(QVector2D(3.0f, 0.0f));
+                player -> goTo(QVector2D(4.0f, 0.0f));
                 player -> rotateTo(ballPosition);
             } else{
                 player->goTo(ballPosition);
