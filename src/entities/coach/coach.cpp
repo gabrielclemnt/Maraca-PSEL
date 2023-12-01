@@ -56,22 +56,22 @@ WorldMap* Coach::getWorldMap() {
 //testando
 
 void Coach::runCoach() {
-    QVector2D ballPosition = getWorldMap()->ballPosition();
-    std::optional<Player*> playerOpt = getPlayer(BLUE, 3);
+    QVector2D ballPosition = getWorldMap()->ballPosition(); // posição atual da bola no mundo e armazena na variável ballPosition
+    std::optional<Player*> playerOpt = getPlayer(BLUE, 0);
 
-    if (playerOpt.has_value()) {
+    if (playerOpt.has_value()) { //verifica se playerOpt tem um valor player: será o ponteiro para o jogador
         Player *player = playerOpt.value();
 
-        if (player->getPosition().distanceToPoint(ballPosition) <= (ROBOT_RADIUS + BALL_RADIUS)) {
-            player->goTo(ballPosition);
+        if (player->getPosition().distanceToPoint(ballPosition) <= (ROBOT_RADIUS + BALL_RADIUS)) { //Verifica se a distância entre a posição do jogador e a posição da bola é menor ou igual à soma dos raios do robô e da bola.
+            player->goTo(ballPosition);                                                            ////Se for verdadeiro, o jogador está próximo o suficiente para chutar.
              player->rotateTo(getWorldMap()->theirGoalCenter());
             player->kick(8.0f, true);
         } else {
-            if (ballPosition.x() > 0.0f) {
-                player->goTo(QVector2D(0.0f, 0.0f));
-                player->rotateTo(ballPosition);
+            if (ballPosition.x() > 0.0f) { //verifica se a coordenada x da posição da bola é maior que zero.
+                player->goTo(QVector2D(0.0f, 0.0f)); //Move o jogador para a posição (0.0, 0.0).
+                player->rotateTo(ballPosition);  // Orienta o jogador na direção da bola.
             } else {
-                player->goTo(ballPosition);
+                player->goTo(ballPosition);  // Se a coordenada x da posição da bola não for maior que zero.
                 player->rotateTo(ballPosition);
             }
         }
