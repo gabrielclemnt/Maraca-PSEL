@@ -102,6 +102,17 @@ void Player::goTo(const QVector2D &targetPosition)
 
     emit sendControlPacket(*_controlPacket);
 }
+//____________________VOID STOP
+void Player::stop()
+{
+    _controlMutex.lock();
+    _controlPacket->setForwardSpeed(0.0f);
+    _controlPacket->setLeftSpeed(0.0f);
+    _controlMutex.unlock();
+
+    emit sendControlPacket(*_controlPacket);
+}
+
 
 void Player::rotateTo(const QVector2D &targetPosition)
 {

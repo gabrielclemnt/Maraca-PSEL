@@ -21,6 +21,11 @@
 
 #include "coach.h"
 
+#define ROBOT_DIAMETER (2.0F * ROBOT_RADIUS)
+#define BALL_RADIUS 0.0215
+#define BALL_DIAMETER (2.0F * BALL_RADIUS)
+#define ROBOT_RADIUS 0.09
+
 Coach::Coach(const QMap<bool, QList<Player*>>& players, WorldMap* worldMap)
     : _players(players), _worldMap(worldMap)
 {
@@ -48,26 +53,25 @@ std::optional<Player*> Coach::getPlayer(const bool& isTeamBlue, const quint8& pl
 WorldMap* Coach::getWorldMap() {
     return _worldMap;
 }
-
+//testando
 void Coach::runCoach() {
-    // Here you can control the robots freely.
-    // Remember that the getPlayer(color, id) function can return a std::nullopt object, so
-    // be careful when you use it (remember to only use ids from 0-2 and the BLUE and YELLOW
-    // defines).
 
-    // Example 1: here we get the ball position and set the BLUE and YELLOW player 0 to follow it
-    QVector2D ballPosition = getWorldMap()->ballPosition();
-    getPlayer(BLUE, 0).value()->goTo(ballPosition);
-    getPlayer(YELLOW, 0).value()->goTo(ballPosition);
+    QVector2D ballPosition = getWorldMap() -> ballPosition();
+    std::optional playerOpt = getPlayer(BLUE,3);
+    if(playerOpt.has_value()){ //verifica se playerOpt tem um valor player: será o ponteiro para o jogador
+        Player *player = playerOpt.value();
+        if (player -> getPosition().distanceToPoint(ballPosition) <= (ROBOT_RADIUS + BALL_RADIUS)){ //verifica se player está próximo da bola
+            player -> goTo(ballPosition); //move o jogador até a bola
+            player -> rotateTo(getWorldMap()->theirGoalCenter()); //faz o jogador girar até o centro do gol
+            player -> dribble(false);
+            player -> kick (8.0f, true);
+        } else if (player -> getPosition().distanceToPoint(ballPosition) <= ((2* BALL_DIAMETER) + (2 * ROBOT_DIAMETER))){ //verifica se o jogador está numa posição intermediária entre a bola e o gol
+            QVector2D behindBall = ballPosition + ((ballPosition - getWorldMap() -> theirGoalCenter()).normalized()*(ROBOT_RADIUS + BALL_RADIUS)); //calcula uma posição atrás da bola entre a bola e o centro do gol
+            player -> goTo(behindBall); //move o jogador para a posição calculada da bola
+            player -> rotateTo(getWorldMap()->theirGoalCenter()); //Faz o jogador girar na direção do centro do gol adversário.
+            player->stop();
 
-    // Example 2: here we set the BLUE and YELLOW players 1 and 2 to rotate to the ball
-    getPlayer(BLUE, 1).value()->rotateTo(ballPosition);
-    getPlayer(BLUE, 2).value()->rotateTo(ballPosition);
-    getPlayer(YELLOW, 1).value()->rotateTo(ballPosition);
-    getPlayer(YELLOW, 2).value()->rotateTo(ballPosition);
+        } else player->stop();
 
-    getPlayer(BLUE, 3).value()->dribble(true);
-    getPlayer(YELLOW, 3).value()->dribble(true);
-    getPlayer(BLUE, 2).value()->dribble(true);
-    getPlayer(YELLOW, 2).value()->dribble(true);
+    }
 }

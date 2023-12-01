@@ -119,6 +119,9 @@ protected:
      */
     void dribble(const bool enable);
 
+    //para o jogador
+    void stop();
+
 private:
     // Player internal variables
     QVector2D _position;
