@@ -73,7 +73,7 @@ void Coach::runCoach() {
 
         } else { //Se o jogador não estiver nem perto da bola nem em uma posição intermediária.
             if (ballPosition.x() > 0.0f){ //Verifica se a bola está do lado direito do campo.
-                player -> goTo(QVector2D(0.0f, 3.0f));
+                player -> goTo(QVector2D(3.0f, 0.0f));
                 player -> rotateTo(ballPosition);
             } else{
                 player->goTo(ballPosition);
