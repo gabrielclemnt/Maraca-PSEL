@@ -56,26 +56,32 @@ WorldMap* Coach::getWorldMap() {
 //testando
 
 void Coach::runCoach() {
+    QVector2D ballPosition = getWorldMap()->ballPosition();
+    std::optional<Player*> playerOpt = getPlayer(BLUE, 3);
 
-    QVector2D ballPosition = getWorldMap() -> ballPosition();
-    std::optional playerOpt = getPlayer(BLUE,3);
-    if(playerOpt.has_value()){ //verifica se playerOpt tem um valor player: será o ponteiro para o jogador
+    if (playerOpt.has_value()) {
         Player *player = playerOpt.value();
-        if (player -> getPosition().distanceToPoint(ballPosition) <= (ROBOT_RADIUS + BALL_RADIUS)){ //verifica se player está próximo da bola
-            player -> goTo(ballPosition); //move o jogador até a bola
-            player -> rotateTo(getWorldMap()->ourGoalCenter()); //faz o jogador girar até o centro do gol
-            player -> dribble(false);
-            player -> kick (8.0f, true);
-        } else if (player -> getPosition().distanceToPoint(ballPosition) <= ((2* BALL_DIAMETER) + (2 * ROBOT_DIAMETER))){ //verifica se o jogador está numa posição intermediária entre a bola e o gol
-            QVector2D behindBall = ballPosition + ((ballPosition - getWorldMap() -> theirGoalCenter()).normalized()*(ROBOT_RADIUS + BALL_RADIUS)); //calcula uma posição atrás da bola entre a bola e o centro do gol
-            player -> goTo(behindBall); //move o jogador para a posição calculada da bola
-            player -> rotateTo(getWorldMap()->theirGoalCenter()); //Faz o jogador girar na direção do centro do gol adversário.
 
-        } else { //Se o jogador não estiver nem perto da bola nem em uma posição intermediária.
-            if (ballPosition.x() > 0.0f){ //Verifica se a bola está do lado direito do campo.
-                player -> goTo(QVector2D(4.0f, 0.0f));
-                player -> rotateTo(ballPosition);
-            } else{
+        static bool hasKicked = false;  // Adicionando variável para rastrear se o robô já chutou
+
+        if (!hasKicked && player->getPosition().distanceToPoint(ballPosition) <= (ROBOT_RADIUS + BALL_RADIUS)) {
+            player->goTo(ballPosition);
+            player->rotateTo(getWorldMap()->ourGoalCenter());
+            player->dribble(false);
+            player->kick(8.0f, true);
+
+            hasKicked = true;  // Marcar que o robô já chutou
+        } else if (hasKicked && player->getPosition().distanceToPoint(ballPosition) <= (ROBOT_RADIUS + BALL_RADIUS)) {
+            player->stop();  // Parar o robô após o chute
+        } else if (player->getPosition().distanceToPoint(ballPosition) <= ((2 * BALL_DIAMETER) + (2 * ROBOT_DIAMETER))) {
+            QVector2D behindBall = ballPosition + ((ballPosition - getWorldMap()->theirGoalCenter()).normalized() * (ROBOT_RADIUS + BALL_RADIUS));
+            player->goTo(behindBall);
+            player->rotateTo(getWorldMap()->theirGoalCenter());
+        } else {
+            if (ballPosition.x() > 0.0f) {
+                player->goTo(QVector2D(4.0f, 0.0f));
+                player->rotateTo(ballPosition);
+            } else {
                 player->goTo(ballPosition);
                 player->rotateTo(ballPosition);
             }
