@@ -62,24 +62,13 @@ void Coach::runCoach() {
     if (playerOpt.has_value()) {
         Player *player = playerOpt.value();
 
-        static bool hasKicked = false;  // Adicionando variável para rastrear se o robô já chutou
-
-        if (!hasKicked && player->getPosition().distanceToPoint(ballPosition) <= (ROBOT_RADIUS + BALL_RADIUS)) {
+        if (player->getPosition().distanceToPoint(ballPosition) <= (ROBOT_RADIUS + BALL_RADIUS)) {
             player->goTo(ballPosition);
-            player->rotateTo(getWorldMap()->ourGoalCenter());
-            player->dribble(false);
+             player->rotateTo(getWorldMap()->theirGoalCenter());
             player->kick(8.0f, true);
-
-            hasKicked = true;  // Marcar que o robô já chutou
-        } else if (hasKicked && player->getPosition().distanceToPoint(ballPosition) <= (ROBOT_RADIUS + BALL_RADIUS)) {
-            player->stop();  // Parar o robô após o chute
-        } else if (player->getPosition().distanceToPoint(ballPosition) <= ((2 * BALL_DIAMETER) + (2 * ROBOT_DIAMETER))) {
-            QVector2D behindBall = ballPosition + ((ballPosition - getWorldMap()->theirGoalCenter()).normalized() * (ROBOT_RADIUS + BALL_RADIUS));
-            player->goTo(behindBall);
-            player->rotateTo(getWorldMap()->theirGoalCenter());
         } else {
             if (ballPosition.x() > 0.0f) {
-                player->goTo(QVector2D(4.0f, 0.0f));
+                player->goTo(QVector2D(0.0f, 0.0f));
                 player->rotateTo(ballPosition);
             } else {
                 player->goTo(ballPosition);

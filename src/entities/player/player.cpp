@@ -108,6 +108,7 @@ void Player::stop()
     _controlMutex.lock();
     _controlPacket->setForwardSpeed(0.0f);
     _controlPacket->setLeftSpeed(0.0f);
+    _controlPacket->setAngularSpeed(0.0f);
     _controlMutex.unlock();
 
     emit sendControlPacket(*_controlPacket);
