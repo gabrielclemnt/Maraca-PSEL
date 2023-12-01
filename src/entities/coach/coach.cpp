@@ -54,6 +54,7 @@ WorldMap* Coach::getWorldMap() {
     return _worldMap;
 }
 //testando
+
 void Coach::runCoach() {
 
     QVector2D ballPosition = getWorldMap() -> ballPosition();
@@ -64,14 +65,20 @@ void Coach::runCoach() {
             player -> goTo(ballPosition); //move o jogador até a bola
             player -> rotateTo(getWorldMap()->theirGoalCenter()); //faz o jogador girar até o centro do gol
             player -> dribble(false);
-            player -> kick (8.0f, true);
+            player -> kick (7.0f, true);
         } else if (player -> getPosition().distanceToPoint(ballPosition) <= ((2* BALL_DIAMETER) + (2 * ROBOT_DIAMETER))){ //verifica se o jogador está numa posição intermediária entre a bola e o gol
             QVector2D behindBall = ballPosition + ((ballPosition - getWorldMap() -> theirGoalCenter()).normalized()*(ROBOT_RADIUS + BALL_RADIUS)); //calcula uma posição atrás da bola entre a bola e o centro do gol
             player -> goTo(behindBall); //move o jogador para a posição calculada da bola
             player -> rotateTo(getWorldMap()->theirGoalCenter()); //Faz o jogador girar na direção do centro do gol adversário.
-            player->stop();
 
-        } else player->stop();
-
+        } else { //Se o jogador não estiver nem perto da bola nem em uma posição intermediária.
+            if (ballPosition.x() > 0.0f){ //Verifica se a bola está do lado direito do campo.
+                player -> goTo(QVector2D(0.0f, 3.0f));
+                player -> rotateTo(ballPosition);
+            } else{
+                player->goTo(ballPosition);
+                player->rotateTo(ballPosition);
+            }
+        }
     }
 }
