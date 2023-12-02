@@ -64,7 +64,7 @@ void Coach::runCoach() {
 
         if (player->getPosition().distanceToPoint(ballPosition) <= (ROBOT_RADIUS + BALL_RADIUS)) { //Verifica se a distância entre a posição do jogador e a posição da bola é menor ou igual à soma dos raios do robô e da bola.
             player->goTo(ballPosition);                                                            ////Se for verdadeiro, o jogador está próximo o suficiente para chutar.
-             player->rotateTo(getWorldMap()->theirGoalCenter());
+            player->rotateTo(getWorldMap()->theirGoalCenter());
             player->kick(8.0f, true);
         } else {
             if (ballPosition.x() > 0.0f) { //verifica se a coordenada x da posição da bola é maior que zero.
