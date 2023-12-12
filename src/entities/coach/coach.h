@@ -49,6 +49,8 @@ public:
      * \param worldMap The given worldmap pointer.
      */
     Coach(const QMap<bool, QList<Player*>>& players, WorldMap* worldMap);
+    QList<QVector2D> getYellowPositions();
+    void avoidObstacle(Player *player, float obstacleRadius);
 
 protected:
     /*!

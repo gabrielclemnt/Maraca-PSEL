@@ -52,27 +52,106 @@ std::optional<Player*> Coach::getPlayer(const bool& isTeamBlue, const quint8& pl
 WorldMap* Coach::getWorldMap() {
     return _worldMap;
 }
+
 //testando
+// calcular a distância entre um ponto e um segmento de reta
+float distanceToSegment(const QVector2D &point, const QVector2D &segmentStart, const QVector2D &segmentEnd) {
+    QVector2D segment = segmentEnd - segmentStart;
+    QVector2D pointToStart = point - segmentStart;
+    float t = QVector2D::dotProduct(pointToStart, segment) / segment.lengthSquared();
+
+    if (t < 0.0f) {
+        return pointToStart.length(); // ponto mais próximo é o início do segmento
+    } else if (t > 1.0f) {
+        return (point - segmentEnd).length(); // ponto mais próximo é o final do segmento
+    } else {
+        QVector2D closestPoint = segmentStart + t * segment;
+        return (point - closestPoint).length(); // ponto mais próximo está no meio do segmento
+    }
+}
+
+//evita robos amarelos enquanto um jogador se move em direçao a bola
+void Coach::avoidObstacle(Player *player, float obstacleRadius) {
+    QVector2D robotPosition = player->getPosition();
+    QVector2D ballPosition = getWorldMap()->ballPosition();
+
+    //obtém a posição de todos os robôs amarelos
+    QList<QVector2D> yellowPositions = getYellowPositions();
+
+    //todos os robôs amarelos
+    for (const auto& yellowPosition : yellowPositions) {
+        // Verifica se o robô amarelo está próximo do segmento de reta entre o robô e a bola
+        if (distanceToSegment(robotPosition, ballPosition, yellowPosition) < obstacleRadius + ROBOT_RADIUS) {
+            //calcula a direção para desviar do robô amarelo
+            QVector2D avoidanceDirection = (robotPosition - ballPosition).normalized();
+
+            //move o robô para o lado perpendicular à direção da trajetória da bola
+            player->goTo(robotPosition + avoidanceDirection * (obstacleRadius + BALL_RADIUS));
+            break;
+        }
+    }
+}
+
+QList<QVector2D> Coach::getYellowPositions() {
+    QList<QVector2D> yellowPositions;
+    for (int i = 0; i < 7; i++) {
+        std::optional<Player*> yellowRobotOpt = getPlayer(YELLOW, i);
+
+        if (yellowRobotOpt.has_value()) {
+            yellowPositions.append(yellowRobotOpt.value()->getPosition());
+        }
+    }
+
+    return yellowPositions;
+}
 
 void Coach::runCoach() {
-    QVector2D ballPosition = getWorldMap()->ballPosition(); // posição atual da bola no mundo e armazena na variável ballPosition
-    std::optional<Player*> playerOpt = getPlayer(BLUE, 0);
+    const float avoidanceDistance = ROBOT_RADIUS + BALL_RADIUS;
+    const float largerAvoidanceRadius = ROBOT_RADIUS + BALL_RADIUS + 1.0f;
+    const float dribbleAvoidanceDistance = ROBOT_RADIUS + ROBOT_RADIUS * 1.5f;
+    const QVector2D targetPoint(5.0f, 0.0f);
+    QVector2D ballPosition = getWorldMap()->ballPosition();
+    std::optional<Player*> playerOpt = getPlayer(BLUE, 3);
 
-    if (playerOpt.has_value()) { //verifica se playerOpt tem um valor player: será o ponteiro para o jogador
+    if (playerOpt.has_value()) {
         Player *player = playerOpt.value();
-
-        if (player->getPosition().distanceToPoint(ballPosition) <= (ROBOT_RADIUS + BALL_RADIUS)) { //Verifica se a distância entre a posição do jogador e a posição da bola é menor ou igual à soma dos raios do robô e da bola.
-            player->goTo(ballPosition);                                                            ////Se for verdadeiro, o jogador está próximo o suficiente para chutar.
-            player->rotateTo(getWorldMap()->theirGoalCenter());
-            player->kick(8.0f, true);
-        } else {
-            if (ballPosition.x() > 0.0f) { //verifica se a coordenada x da posição da bola é maior que zero.
-                player->goTo(QVector2D(0.0f, 0.0f)); //Move o jogador para a posição (0.0, 0.0).
-                player->rotateTo(ballPosition);  // Orienta o jogador na direção da bola.
-            } else {
-                player->goTo(ballPosition);  // Se a coordenada x da posição da bola não for maior que zero.
-                player->rotateTo(ballPosition);
+        player->goTo(ballPosition);
+        player->rotateTo(getWorldMap()->theirGoalCenter());
+        player -> dribble(true);
+        // Verifica se o robô está próximo da bola
+        if (player->getPosition().distanceToPoint(ballPosition) <= avoidanceDistance) {
+            // Verifica se há robôs amarelos na frente durante o caminho até targetPoint
+            bool obstacleDetected = false;
+            for (const auto& yellowPosition : getYellowPositions()) {
+                if (player->getPosition().distanceToPoint(yellowPosition) <= largerAvoidanceRadius) {
+                    //desvia do robô amarelo com um raio maior
+                    QVector2D avoidanceDirection = (yellowPosition - player->getPosition()).normalized();
+                    player->goTo(player->getPosition() + avoidanceDirection * (largerAvoidanceRadius / 2));
+                    obstacleDetected = true;
+                }
             }
+
+            if (!obstacleDetected) {
+                //vai para o ponto (5.0f, 0.0f)
+                player->goTo(targetPoint);
+
+                //verifica se o robô está se aproximando de um robô amarelo durante o caminho
+                for (const auto& yellowPosition : getYellowPositions()) {
+                    if (player->getPosition().distanceToPoint(yellowPosition) <= dribbleAvoidanceDistance) {
+                        //desvia do robô amarelo
+                        QVector2D avoidanceDirection = (yellowPosition - player->getPosition()).normalized();
+                        player->goTo(player->getPosition() + avoidanceDirection * dribbleAvoidanceDistance);
+                        player->rotateTo(ballPosition);
+                        break; //para de verificar se um obstáculo foi detectado
+                    }
+                }
+                player->stop();
+                player->goTo(ballPosition);
+            }
+        } else {
+            //se não estiver próximo da bola, vai para a bola
+            player->goTo(ballPosition);
+            player->rotateTo(ballPosition);
         }
     }
 }
