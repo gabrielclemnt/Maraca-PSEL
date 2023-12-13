@@ -94,7 +94,7 @@ void Coach::avoidObstacle(Player *player) {
         QVector2D adjustedDirection(-avoidanceDirection.y(), avoidanceDirection.x());
         //move o robô para o lado
         QVector2D newRobotPosition = obstaclePosition - adjustedDirection * (ROBOT_RADIUS + BALL_RADIUS) * -2.0f;
-        spdlog :: info("({},{})", newRobotPosition.x(), newRobotPosition.y());
+        //spdlog :: info("({},{})", newRobotPosition.x(), newRobotPosition.y());
         //atualiza a posição do robô
         player->goTo(newRobotPosition);
         player->rotateTo(targetPoint);
@@ -168,7 +168,6 @@ void Coach::runCoach() {
                         // }
                         avoidObstacle(player);
                         //player->stop();
-                        //player->goTo(ballPosition);
 
                      }
 
