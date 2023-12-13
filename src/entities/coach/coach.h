@@ -50,7 +50,7 @@ public:
      */
     Coach(const QMap<bool, QList<Player*>>& players, WorldMap* worldMap);
     QList<QVector2D> getYellowPositions();
-    void avoidObstacle(Player *player, float obstacleRadius);
+    void avoidObstacle(Player *player);
 
 protected:
     /*!
