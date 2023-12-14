@@ -75,32 +75,63 @@ float distanceToSegment(const QVector2D &point, const QVector2D &segmentStart, c
 void Coach::avoidObstacle(Player *player) {
     QVector2D robotPosition = player->getPosition();
     QVector2D ballPosition = getWorldMap()->ballPosition();
-
+    const QVector2D targetPoint(4.5f, 0.0f);
     //obtém a posição de todos os robôs amarelos
     QList<QVector2D> yellowPositions = getYellowPositions();
     QVector2D obstaclePosition = QVector2D (getWorldMap()->maxX(),getWorldMap()->maxY()) ;
-    // Todos os robôs amarelos
+
+    //todos os robôs amarelos
     for (const auto& yellowPosition : yellowPositions) {
         //verifica se o robo amarelo está próximo do segmento de reta entre o robo e a bolaa
-        if(yellowPosition.distanceToPoint(player->getPosition())<= obstaclePosition.distanceToPoint(player->getPosition())){
-            obstaclePosition = yellowPosition;
+        // if(yellowPosition.distanceToPoint(player->getPosition())<= obstaclePosition.distanceToPoint(player->getPosition())){
+        //     obstaclePosition = yellowPosition;
+        // }
+        if(distanceToSegment(yellowPosition,player->getPosition(),targetPoint) >= ROBOT_DIAMETER * 2){
+            yellowPositions.removeOne(yellowPosition);
         }
     }
-    if (distanceToSegment(robotPosition, ballPosition, obstaclePosition) <=  ROBOT_RADIUS + ROBOT_RADIUS) {
-        const QVector2D targetPoint(5.0f, 0.0f);
+    // filtra os robôs que são obstáculos para o ponto desejado
+    // QList<QVector2D> obstacleRobots;
+    obstaclePosition = findClosestObstacle(player->getPosition(), targetPoint, yellowPositions);
+    // spdlog :: info("{}",yellowPositions.length());
+    if ((distanceToSegment(obstaclePosition, robotPosition, targetPoint) <= (ROBOT_DIAMETER + ROBOT_DIAMETER)) || robotPosition.distanceToPoint(obstaclePosition) <= 0.5f) {
+        const QVector2D targetPoint(4.5f, 0.0f);
         //calcula a direção para desviar do robô amarelo
         // spdlog :: info("testando");
         QVector2D avoidanceDirection = (robotPosition  - obstaclePosition * 3).normalized(); // ajustar para virar 90º
         QVector2D adjustedDirection(-avoidanceDirection.y(), avoidanceDirection.x());
         //move o robô para o lado
-        QVector2D newRobotPosition = obstaclePosition - adjustedDirection * (ROBOT_RADIUS + BALL_RADIUS) * -2.0f;
-        //spdlog :: info("({},{})", newRobotPosition.x(), newRobotPosition.y());
+        QVector2D newRobotPosition = obstaclePosition + adjustedDirection * (ROBOT_DIAMETER + 3.0F) * 2.0F; //adjustedDirection
         //atualiza a posição do robô
         player->goTo(newRobotPosition);
-        player->rotateTo(targetPoint);
+
+        spdlog :: info("({},{})", newRobotPosition.x(), newRobotPosition.y());
     }
+    else{
+        player->goTo(ballPosition);
+        // player->stop();
+    }
+    player->rotateTo(targetPoint);
 }
 //ajustar 90º
+
+//filtra os robos amarelos
+//recebe uma posição inicial, uma posição final e uma lista de obstaculos, ent encontra o obstaculo mais proximo ao segmento de reta
+QVector2D Coach::findClosestObstacle(const QVector2D& start, const QVector2D& end, const QList<QVector2D>& obstacles) {
+    QVector2D closestObstacle = QVector2D(getWorldMap()->maxX(), getWorldMap()->maxY());
+    float minDistance = std::numeric_limits<float>::max(); //rastrear a menor distância encontrada durante a iteração pelos obstáculos
+
+    for (const auto& obstacle : obstacles) {
+        float distance = distanceToSegment(start, end, obstacle);
+
+        if (distance <= (ROBOT_RADIUS + BALL_RADIUS) * 2.0f && distance < minDistance) {
+            closestObstacle = obstacle;
+            minDistance = distance;
+        }
+    }
+
+    return closestObstacle;
+}
 
 QList<QVector2D> Coach::getYellowPositions() {
     QList<QVector2D> yellowPositions;
@@ -120,7 +151,7 @@ void Coach::runCoach() {
     const float avoidanceDistance = ROBOT_RADIUS + BALL_RADIUS;
     const float largerAvoidanceRadius = ROBOT_RADIUS + BALL_RADIUS + 2.0f;
     const float dribbleAvoidanceDistance = ROBOT_RADIUS + ROBOT_RADIUS * 1.5f;
-    const QVector2D targetPoint(5.0f, 0.0f);
+    const QVector2D targetPoint(4.5f, 0.0f);
     QVector2D ballPosition = getWorldMap()->ballPosition();
     std::optional<Player*> playerOpt = getPlayer(BLUE, 3);
 
@@ -142,7 +173,6 @@ void Coach::runCoach() {
             // spdlog :: info("testando");
                 if (player->getPosition().distanceToPoint(ballPosition) <= avoidanceDistance) {
                     //verifica se há robôs amarelos na frente durante o caminho até targetPoint
-
                     bool obstacleDetected = false;
                     for (const auto& yellowPosition : getYellowPositions()) {
                         if (player->getPosition().distanceToPoint(yellowPosition) <= largerAvoidanceRadius) {
@@ -168,13 +198,11 @@ void Coach::runCoach() {
                         // }
                         avoidObstacle(player);
                         //player->stop();
-
                      }
-
                 }
                 else{
-                    player-> goTo(targetPoint);
-                    player->rotateTo(targetPoint);
+                    player->goTo(ballPosition);
+                    player->rotateTo(ballPosition);
                 }
         }
         else {

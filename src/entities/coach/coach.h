@@ -51,6 +51,7 @@ public:
     Coach(const QMap<bool, QList<Player*>>& players, WorldMap* worldMap);
     QList<QVector2D> getYellowPositions();
     void avoidObstacle(Player *player);
+    QVector2D findClosestObstacle(const QVector2D& start, const QVector2D& end, const QList<QVector2D>& obstacles);
 
 protected:
     /*!
