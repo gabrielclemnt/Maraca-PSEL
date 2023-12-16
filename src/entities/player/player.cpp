@@ -88,8 +88,8 @@ void Player::goTo(const QVector2D &targetPosition)
         return;
     }
 
-    QVector2D decomposedVel(desiredVelocity.length() * cos(angleX)/2,
-                            desiredVelocity.length() * cos(angleY)/2);
+    QVector2D decomposedVel(desiredVelocity.length() * cos(angleX),
+                            desiredVelocity.length() * cos(angleY));
 
     if (decomposedVel.length() > MAX_SPEED) {
         decomposedVel = decomposedVel.normalized() * MAX_SPEED;
