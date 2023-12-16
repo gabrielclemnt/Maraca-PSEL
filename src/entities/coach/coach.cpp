@@ -105,7 +105,7 @@ void Coach::avoidObstacle(Player *player) {
         //atualiza a posição do robô
         player->goTo(newRobotPosition);
 
-        spdlog :: info("({},{})", newRobotPosition.x(), newRobotPosition.y());
+        //spdlog :: info("({},{})", newRobotPosition.x(), newRobotPosition.y());
     }
     else{
         player->goTo(ballPosition);
@@ -124,7 +124,7 @@ QVector2D Coach::findClosestObstacle(const QVector2D& start, const QVector2D& en
     for (const auto& obstacle : obstacles) {
         float distance = distanceToSegment(start, end, obstacle);
 
-        if (distance <= (ROBOT_RADIUS + BALL_RADIUS) * 2.0f && distance < minDistance) {
+        if (distance <= (ROBOT_RADIUS + BALL_RADIUS) * 2.5f && distance < minDistance) {
             closestObstacle = obstacle;
             minDistance = distance;
         }
