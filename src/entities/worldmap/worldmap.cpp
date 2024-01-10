@@ -143,3 +143,4 @@ void WorldMap::updateFieldDetection(const SSL_GeometryData &field)
 {
     _field = field;
 }
+

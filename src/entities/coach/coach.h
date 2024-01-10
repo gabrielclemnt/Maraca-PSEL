@@ -52,6 +52,14 @@ public:
     QList<QVector2D> getYellowPositions();
     void avoidObstacle(Player *player);
     QVector2D findClosestObstacle(const QVector2D& start, const QVector2D& end, const QList<QVector2D>& obstacles);
+    QVector2D _lastBallPosition;
+    QVector2D _ballDirection;
+    void updateDataBall();
+    QVector2D ballVelocity();
+    QVector2D ballDirection();
+
+
+
 
 protected:
     /*!
@@ -75,6 +83,8 @@ private:
     // Internal variables
     QMap<bool, QList<Player*>> _players;
     WorldMap* _worldMap;
+    int contador = 0;
+
 
 private slots:
     /*!
