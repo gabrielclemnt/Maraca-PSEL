@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 
     // Create WorldMap instance and connect it with the Vision module to receive detection packets
     // from ball and field.
-    WorldMap *worldMap = new WorldMap(false);
+    WorldMap *worldMap = new WorldMap(true);
     QObject::connect(vision, &Vision::sendFieldDetection, worldMap, &WorldMap::updateFieldDetection);
     QObject::connect(vision, &Vision::sendBallDetection, worldMap, &WorldMap::updateBallDetection);
 

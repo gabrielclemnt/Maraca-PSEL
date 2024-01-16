@@ -24,10 +24,11 @@
 #define BALL_RADIUS 0.0215
 #define BALL_DIAMETER (2.0F * BALL_RADIUS)
 #define ROBOT_RADIUS 0.09
-#define BALL_SPEED 3.0;
+#define BALL_SPEED 3.0
+#define SEMICIRCLE_RADIUS 1.5
 
 Coach::Coach(const QMap<bool, QList<Player*>>& players, WorldMap* worldMap)
-    : _players(players), _worldMap(worldMap), contador(0)
+    : _players(players), _worldMap(worldMap), contador(0), estado(0)
 {
     // Create QTimer and connects to the runCoach() slot
     _actuatorTimer = new QTimer(this);
@@ -37,6 +38,7 @@ Coach::Coach(const QMap<bool, QList<Player*>>& players, WorldMap* worldMap)
     // variavel para armazenar posição e direção da bola
     _lastBallPosition = QVector2D(0,0);
     _ballDirection = QVector2D(0,0);
+    _gk_control = new gk_control(worldMap);
 
 }
 
@@ -69,84 +71,77 @@ void Coach::updateDataBall() {
 
 }
 
-int estado = 0;
+QVector2D Coach::calculaSemiCircle(const QVector2D& ballPosition, float radius) {
+
+    //pega o centro do gol
+    QVector2D goalCenter = getWorldMap()->ourGoalCenter();
+
+    //calcula o angulo do semi circulo
+    float angle = atan2(ballPosition.y() - goalCenter.y(), ballPosition.x() - goalCenter.x());
+
+    // calcula o x e y do target position
+    float x = radius * cos(angle);
+    float y = radius * sin(angle);
+
+    // retorna target position
+    return QVector2D(goalCenter.x() + x, goalCenter.y() + y);
+
+}
+
 int haskicked = 0;
 int var= 0;
+int gol = 0;
 
 void Coach::runCoach() {
 
-    if(contador >= 30){
-        updateDataBall();
-        spdlog :: info("testando");
-        contador = 0;
+    // if(contador >= 30){
+    //     updateDataBall();
+    //     //spdlog :: info("testando");
+    //     contador = 0;
+    // }
+
+    QVector2D ballPosition = getWorldMap()->ballPosition();
+    //const QVector2D pontoCerto(3.0f, 2.0f);
+    //float distP2Ball = getPlayer(YELLOW,4).value()->getPosition().distanceToPoint(balloPosition);
+
+    // getPlayer(YELLOW,0).value()-> goTo(pontoCerto);
+    // getPlayer(YELLOW,0).value()-> rotateTo(balloPosition);
+    // getPlayer(BLUE,2).value()->rotateTo(pontoCerto);
+    // getPlayer(BLUE,2).value()->kick(3.0,false);
+
+    // if(gol ==0){
+
+    //     QVector2D targetPosition = calculaSemiCircle(_worldMap->ballPosition(), SEMICIRCLE_RADIUS);  // Replace with your function
+    //     Player *p = getPlayer(YELLOW, 4).value();
+    //     p->goTo(targetPosition);
+    //     p->rotateTo(_worldMap->ballPosition());
+
+    // }
+
+    QMap<quint8, std::optional<Player *>> players;
+    for (quint8 playerId = 0; playerId < 6; playerId++){
+        players.insert(playerId, getPlayer(BLUE, playerId));
     }
 
-    QVector2D balloPosition = getWorldMap()->ballPosition();
-    // QVector2D previousBallPosition = ballPosition;
+    for (quint8 playerId : players.keys()){
+        if(players.value(playerId).has_value()){
+            if(playerId == 0){
+                _gk_control -> setPlayer(players.value(playerId).value());
+                if(getWorldMap() -> isBallInsideOurPenaltyArea(ballPosition)){ //se a bola tiver dentro da area passa
+                    _gk_control->pass(QVector2D(-1.5f, -2.0f));
+                    spdlog :: info("testando");
 
-    const QVector2D pontoCerto(3.0f, 2.0f);
-    //const QVector2D pontoteste1(2.4f, 1.6f);
-
-    // float distP0Ball = getPlayer(BLUE,2).value()->getPosition().distanceToPoint(ballPosition);
-    // float distP1Ball = getPlayer(YELLOW,0).value()->getPosition().distanceToPoint(ballPosition);
-    float distP2Ball = getPlayer(YELLOW,4).value()->getPosition().distanceToPoint(balloPosition);
-
-    getPlayer(YELLOW,0).value()-> goTo(pontoCerto);
-    getPlayer(YELLOW,0).value()-> rotateTo(balloPosition);
-    getPlayer(BLUE,2).value()->rotateTo(pontoCerto);
-    getPlayer(BLUE,2).value()->kick(3.0,false);
-
-
-    if (estado == 0){ //estado inicial player0 vai para bola player2 vai para o target
-
-        getPlayer(BLUE,2).value()->goTo(balloPosition);
-        getPlayer(BLUE,2).value()->dribble(true);
-
-
-        if(getPlayer(BLUE,2).value()->getPosition().distanceToPoint(balloPosition) <= (BALL_RADIUS +  ROBOT_DIAMETER)){
-
-            getPlayer(BLUE,2).value()->kick(3.0,false);
-
-            while(var < 10){
-            getPlayer(BLUE,2).value()->kick(3.0,false);
-            var++;
+            } else { // se não defende
+                //defend
+                _gk_control -> defend(); //metodo defende
             }
-            if(var == 10 && haskicked == 0){
-            estado = 1;
-            }
-        }
 
-    }
-
-    if (estado == 1 && getPlayer(BLUE,2).value()->getPosition().distanceToPoint(balloPosition) >= (ROBOT_DIAMETER+ ROBOT_DIAMETER)){
-
-        //spdlog :: info("testando");
-        if(haskicked == 0){
-            haskicked = 1;
-        if (distP2Ball >= 0.3f && haskicked == 1){
-
-            estado = 2;
+        } else if (playerId == 1){
+            players.value(playerId).value()->rotateTo(ballPosition);
+        } else{
 
         }
-        }
     }
-
-    if(estado == 2){
-
-
-        //spdlog::info("ballDirection ({}, {})", _ballDirection.x(), _ballDirection.y());
-
-        //float distanceToIntercept = redimensionarDistancia(_worldMap->ballPosition(), _worldMap->ballVelocity(), _worldMap->goalPosition());
-        float distanceToIntercept = 0.8;
-        QVector2D desiredPosition = _worldMap->ballPosition() + _ballDirection * distanceToIntercept;
-
-        //spdlog :: info("testando");
-        Player *p = getPlayer(YELLOW, 4).value();
-        p->goTo(desiredPosition);
-        p->rotateTo(_worldMap->ballPosition());
-    }
-    contador++;
- }
-
-
+  }
+}
 

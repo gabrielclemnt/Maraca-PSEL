@@ -154,6 +154,10 @@ public:
      */
     QVector2D ballPosition() const;
 
+    bool isBallInsideOurPenaltyArea(QVector2D position) const;
+
+    bool isBallInsideTheirPenaltyArea(QVector2D position) const;
+
 private:
     // Internal variables
     SSL_GeometryData _field;

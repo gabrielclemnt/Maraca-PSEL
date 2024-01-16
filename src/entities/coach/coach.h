@@ -30,6 +30,8 @@
 #include <src/entities/player/player.h>
 #include <src/entities/worldmap/worldmap.h>
 
+#include <src/entities/player/gk_control.h>
+
 #include <spdlog/spdlog.h>
 
 #define COACH_ITERATION_INTERVAL_MS 16
@@ -84,6 +86,9 @@ private:
     QMap<bool, QList<Player*>> _players;
     WorldMap* _worldMap;
     int contador = 0;
+    int estado = 0;
+    QVector2D calculaSemiCircle(const QVector2D& ballPosition, float radius);
+    gk_control *_gk_control;
 
 
 private slots:
