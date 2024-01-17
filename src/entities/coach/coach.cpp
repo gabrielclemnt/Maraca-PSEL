@@ -109,15 +109,6 @@ void Coach::runCoach() {
     // getPlayer(BLUE,2).value()->rotateTo(pontoCerto);
     // getPlayer(BLUE,2).value()->kick(3.0,false);
 
-    // if(gol ==0){
-
-    //     QVector2D targetPosition = calculaSemiCircle(_worldMap->ballPosition(), SEMICIRCLE_RADIUS);  // Replace with your function
-    //     Player *p = getPlayer(YELLOW, 4).value();
-    //     p->goTo(targetPosition);
-    //     p->rotateTo(_worldMap->ballPosition());
-
-    // }
-
     QMap<quint8, std::optional<Player *>> players;
     for (quint8 playerId = 0; playerId < 6; playerId++){
         players.insert(playerId, getPlayer(BLUE, playerId));
@@ -125,18 +116,21 @@ void Coach::runCoach() {
 
     for (quint8 playerId : players.keys()){
         if(players.value(playerId).has_value()){
-            if(playerId == 0){
+            if(playerId == 5){
                 _gk_control -> setPlayer(players.value(playerId).value());
-                if(getWorldMap() -> isBallInsideOurPenaltyArea(ballPosition)){ //se a bola tiver dentro da area passa
-                    _gk_control->pass(QVector2D(-1.5f, -2.0f));
-                    spdlog :: info("testando");
+                players.value(playerId).value()->rotateTo(ballPosition);
+                players.value(playerId).value()->dribble(true);
 
-            } else { // se não defende
+                if(players.value(playerId).value()->getPosition().distanceToPoint(ballPosition)<=(ROBOT_RADIUS + BALL_RADIUS)){ //se a bola tiver dentro da area passa
+                    _gk_control->pass(getPlayer(BLUE, 0).value());
+                    //spdlog :: info("testando");
+
+            } else {
                 //defend
                 _gk_control -> defend(); //metodo defende
             }
 
-        } else if (playerId == 1){
+        } else if (playerId == 0){
             players.value(playerId).value()->rotateTo(ballPosition);
         } else{
 

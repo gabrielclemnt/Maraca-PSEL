@@ -181,6 +181,7 @@ void Player::updateFromDetection(const RobotDetectionPacket& robotDetectionPacke
         return;
     }
 
+
     // Update detection
     _missingPackets = 0;
     _position = QVector2D(robotDetectPacket.x() / 1000.0f, robotDetectPacket.y() / 1000.0f);
