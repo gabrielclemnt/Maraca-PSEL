@@ -88,6 +88,60 @@ float distanceToSegment(const QVector2D &point, const QVector2D &segmentStart, c
     }
 }
 
+QVector2D Coach::findClosestObstacle(const QVector2D& start, const QVector2D& end, const QList<QVector2D>& obstacles) {
+    QVector2D closestObstacle = QVector2D(getWorldMap()->maxX(), getWorldMap()->maxY());
+    float minDistance = std::numeric_limits<float>::max(); //rastrear a menor distância encontrada durante a iteração pelos obstáculos
+
+    for (const auto& obstacle : obstacles) {
+        float distance = distanceToSegment(start, end, obstacle);
+
+        if (distance <= (ROBOT_RADIUS + BALL_RADIUS) * 2.5f && distance < minDistance) {
+            closestObstacle = obstacle;
+            minDistance = distance;
+        }
+    }
+
+    return closestObstacle;
+}
+
+void Coach::avoidObstacle(Player *player) {
+    QVector2D robotPosition = player->getPosition();
+    QVector2D ballPosition = getWorldMap()->ballPosition();
+    const QVector2D targetPoint(4.5f, 0.0f);
+    //obtém a posição de todos os robôs amarelos
+    QList<QVector2D> yellowPositions = getYellowPositions();
+    QVector2D obstaclePosition = QVector2D (getWorldMap()->maxX(),getWorldMap()->maxY()) ;
+
+    //todos os robôs amarelos
+    for (const auto& yellowPosition : yellowPositions) {
+
+        if(distanceToSegment(yellowPosition,player->getPosition(),targetPoint) >= ROBOT_DIAMETER * 2){
+            yellowPositions.removeOne(yellowPosition);
+        }
+    }
+    // filtra os robôs que são obstáculos para o ponto desejado
+
+    obstaclePosition = findClosestObstacle(player->getPosition(), targetPoint, yellowPositions);
+    // spdlog :: info("{}",yellowPositions.length());
+    if ((distanceToSegment(obstaclePosition, robotPosition, targetPoint) <= (ROBOT_DIAMETER + ROBOT_DIAMETER)) || robotPosition.distanceToPoint(obstaclePosition) <= 0.5f) {
+        //const QVector2D targetPoint(4.5f, 0.0f);
+        //calcula a direção para desviar do robô amarelo
+        // spdlog :: info("testando");
+        QVector2D avoidanceDirection = (robotPosition  - obstaclePosition * 3).normalized(); // ajustar para virar 90º
+        QVector2D adjustedDirection(-avoidanceDirection.y(), avoidanceDirection.x());
+        QVector2D newRobotPosition = obstaclePosition + adjustedDirection * (ROBOT_DIAMETER + 3.0F) * 2.0F; //adjustedDirection
+        //atualiza a posição do robô
+        player->goTo(newRobotPosition);
+
+        //spdlog :: info("({},{})", newRobotPosition.x(), newRobotPosition.y());
+    }
+    else{
+        player->goTo(ballPosition);
+        // player->stop();
+    }
+    player->rotateTo(targetPoint);
+}
+
 QList<QVector2D> Coach::getYellowPositions() {
     QList<QVector2D> yellowPositions;
     for (int i = 0; i < 6; i++) {
@@ -128,16 +182,22 @@ void Coach::runCoach() {
     }
 
     for (quint8 playerId : players.keys()){
+
         if(players.value(playerId).has_value()){
+
             if(playerId == 5){
                 _gk_control -> setPlayer(players.value(playerId).value());
                 players.value(playerId).value()->rotateTo(ballPosition);
                 players.value(playerId).value()->dribble(true);
 
-                if(players.value(playerId).value()->getPosition().distanceToPoint(ballPosition)<=(ROBOT_RADIUS + BALL_RADIUS)){ //se a bola tiver dentro da area passa
-                    _gk_control->pass(getPlayer(BLUE, 0).value());
-                    //spdlog :: info("testando");
+                if(getWorldMap()->isBallInsideOurPenaltyArea(ballPosition)){
+                    players.value(playerId).value()->goTo(ballPosition);
 
+                    if(players.value(playerId).value()->getPosition().distanceToPoint(ballPosition)<=(ROBOT_RADIUS + BALL_RADIUS)){ //se a bola tiver dentro da area passa
+                        _gk_control->pass(getPlayer(BLUE, 0).value());
+                        //spdlog :: info("testando");
+
+                    }
                 }
                 else {
                 //defend
@@ -158,7 +218,7 @@ void Coach::runCoach() {
                 }
 
             }
-            if(playerId == 4){
+            if(playerId == 4){ // defensor blue 4
                 _dk_control -> setDPlayer(players.value(playerId).value());
                 players.value(playerId).value()->dribble(true);
 
@@ -172,13 +232,48 @@ void Coach::runCoach() {
 
 
             }
-            if(playerId == 1){
+            if(playerId == 1){ //atacante lateral superior blue 1
                 _ak_control -> setAPlayer(players.value(playerId).value());
                 players.value(playerId).value()->dribble(true);
 
                 if(ballPosition.x()<= 0.0f){
-                    _ak_control->atackposition1();
+                    _ak_control->attackposition1();
                 }
+                if(ballPosition.x()> 0.0f){
+                    _ak_control->attack1(getPlayer(BLUE, 3).value());
+                }
+
+            }
+
+            if(playerId == 2){
+                _ak_control -> setAPlayer(players.value(playerId).value());
+                players.value(playerId).value()->dribble(true);
+
+                if(ballPosition.x()<= 0.0f){
+                    _ak_control->attackposition2();
+                }
+
+                if(ballPosition.x()> 0.0f){
+                    _ak_control->attack2(getPlayer(BLUE, 3).value());
+                }
+
+            }
+
+            if(playerId == 3){
+
+            _ak_control -> setAPlayer(players.value(playerId).value());
+            players.value(playerId).value()->dribble(true);
+
+
+            if(ballPosition.x() == 0 && ballPosition.y() == 0){
+
+                _ak_control->inicial();
+
+            }
+
+            if(ballPosition.x()< 0 && ballPosition.x() < 1.7)
+
+            players.value(playerId).value()-> goTo(ballPosition);
 
             }
 

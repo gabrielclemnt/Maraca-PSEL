@@ -11,12 +11,25 @@
 
 class ak_control
 {
+
 public:
     ak_control(WorldMap *worldMap);
     void setAPlayer(Player *player);
 
-    void atackposition1();
-    void atackposition2();
+    void attackposition1();
+    void attackposition2();
+    void attack1(Player *player3);
+    void attack2(Player *player3);
+    void attack3(Player *player3);
+    void attackd();
+    void attacka();
+    void inicial();
+
+
+    //talvez implemente desvio
+    QList<QVector2D> getYellowPositions();
+    void avoidObstacle(Player *player);
+    QVector2D findClosestObstacle(const QVector2D& start, const QVector2D& end, const QList<QVector2D>& obstacles);
 
 
 private:
