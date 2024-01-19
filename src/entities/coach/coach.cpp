@@ -39,6 +39,8 @@ Coach::Coach(const QMap<bool, QList<Player*>>& players, WorldMap* worldMap)
     _lastBallPosition = QVector2D(0,0);
     _ballDirection = QVector2D(0,0);
     _gk_control = new gk_control(worldMap);
+    _dk_control = new dk_control(worldMap);
+    _ak_control = new ak_control(worldMap);
 
 }
 
@@ -71,26 +73,33 @@ void Coach::updateDataBall() {
 
 }
 
-QVector2D Coach::calculaSemiCircle(const QVector2D& ballPosition, float radius) {
+float distanceToSegment(const QVector2D &point, const QVector2D &segmentStart, const QVector2D &segmentEnd) {
+    QVector2D segment = segmentEnd - segmentStart;
+    QVector2D pointToStart = point - segmentStart;
+    float t = QVector2D::dotProduct(pointToStart, segment) / segment.lengthSquared();
 
-    //pega o centro do gol
-    QVector2D goalCenter = getWorldMap()->ourGoalCenter();
-
-    //calcula o angulo do semi circulo
-    float angle = atan2(ballPosition.y() - goalCenter.y(), ballPosition.x() - goalCenter.x());
-
-    // calcula o x e y do target position
-    float x = radius * cos(angle);
-    float y = radius * sin(angle);
-
-    // retorna target position
-    return QVector2D(goalCenter.x() + x, goalCenter.y() + y);
-
+    if (t < 0.0f) {
+        return pointToStart.length(); // ponto mais próximo é o início do segmento
+    } else if (t > 1.0f) {
+        return (point - segmentEnd).length(); // ponto mais próximo é o final do segmento
+    } else {
+        QVector2D closestPoint = segmentStart + t * segment;
+        return (point - closestPoint).length(); // ponto mais próximo está no meio do segmento
+    }
 }
 
-int haskicked = 0;
-int var= 0;
-int gol = 0;
+QList<QVector2D> Coach::getYellowPositions() {
+    QList<QVector2D> yellowPositions;
+    for (int i = 0; i < 6; i++) {
+        std::optional<Player*> yellowRobotOpt = getPlayer(YELLOW, i);
+
+        if (yellowRobotOpt.has_value()) {
+            yellowPositions.append(yellowRobotOpt.value()->getPosition());
+        }
+    }
+
+    return yellowPositions;
+}
 
 void Coach::runCoach() {
 
@@ -108,6 +117,10 @@ void Coach::runCoach() {
     // getPlayer(YELLOW,0).value()-> rotateTo(balloPosition);
     // getPlayer(BLUE,2).value()->rotateTo(pontoCerto);
     // getPlayer(BLUE,2).value()->kick(3.0,false);
+    //player 5 goleiro
+    //player 0 defensor
+    //player 4 defensor
+    //player 3,1,2 atacante
 
     QMap<quint8, std::optional<Player *>> players;
     for (quint8 playerId = 0; playerId < 6; playerId++){
@@ -125,17 +138,59 @@ void Coach::runCoach() {
                     _gk_control->pass(getPlayer(BLUE, 0).value());
                     //spdlog :: info("testando");
 
-            } else {
+                }
+                else {
                 //defend
                 _gk_control -> defend(); //metodo defende
+                }
+
             }
 
-        } else if (playerId == 0){
-            players.value(playerId).value()->rotateTo(ballPosition);
-        } else{
+            if (playerId == 0){ //defensor blue 0
+                _dk_control -> setDPlayer(players.value(playerId).value());
+                players.value(playerId).value()->dribble(true);
+
+                if(ballPosition.x() <= 0.0f && ballPosition.y()>= 0.0f){
+                    _dk_control->intercept0(getPlayer(BLUE, 1).value());
+                }
+                if(ballPosition.x()>= 0.0f){
+                    _dk_control->defensePosition0();
+                }
+
+            }
+            if(playerId == 4){
+                _dk_control -> setDPlayer(players.value(playerId).value());
+                players.value(playerId).value()->dribble(true);
+
+                if(ballPosition.x() <= 0.0f && ballPosition.y() <= 0.0f){
+                    _dk_control->intercept4(getPlayer(BLUE, 2).value());
+                }
+                if(ballPosition.x()>= 0.0f){
+                    _dk_control->defensePosition4();
+                }
+
+
+
+            }
+            if(playerId == 1){
+                _ak_control -> setAPlayer(players.value(playerId).value());
+                players.value(playerId).value()->dribble(true);
+
+                if(ballPosition.x()<= 0.0f){
+                    _ak_control->atackposition1();
+                }
+
+            }
+
+
+
+
+
+
 
         }
+
+
     }
-  }
 }
 

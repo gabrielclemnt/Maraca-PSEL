@@ -31,6 +31,8 @@
 #include <src/entities/worldmap/worldmap.h>
 
 #include <src/entities/player/gk_control.h>
+#include <src/entities/player/dk_control.h>
+#include <src/entities/player/ak_control.h>
 
 #include <spdlog/spdlog.h>
 
@@ -87,8 +89,9 @@ private:
     WorldMap* _worldMap;
     int contador = 0;
     int estado = 0;
-    QVector2D calculaSemiCircle(const QVector2D& ballPosition, float radius);
     gk_control *_gk_control;
+    dk_control *_dk_control;
+    ak_control *_ak_control;
 
 
 private slots:

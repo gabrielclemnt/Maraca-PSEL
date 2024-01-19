@@ -44,6 +44,8 @@ SOURCES += \
         main.cpp \
         src/entities/actuator/actuator.cpp \
         src/entities/coach/coach.cpp \
+        src/entities/player/ak_control.cpp \
+        src/entities/player/dk_control.cpp \
         src/entities/player/gk_control.cpp \
         src/entities/player/player.cpp \
         src/entities/vision/vision.cpp \
@@ -68,6 +70,8 @@ HEADERS += \
     include/proto/ssl_vision_wrapper.pb.h \
     src/entities/actuator/actuator.h \
     src/entities/coach/coach.h \
+    src/entities/player/ak_control.h \
+    src/entities/player/dk_control.h \
     src/entities/player/gk_control.h \
     src/entities/player/player.h \
     src/entities/vision/vision.h \
