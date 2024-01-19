@@ -21,9 +21,9 @@ public:
     void attack1(Player *player3);
     void attack2(Player *player3);
     void attack3(Player *player3);
-    void attackd();
-    void attacka();
-    void inicial();
+    void attackd(Player *player1, Player *player2);
+    //void attacka(Player *player2);
+    void inicial(Player *player0);
 
 
     //talvez implemente desvio

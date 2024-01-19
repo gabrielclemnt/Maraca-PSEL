@@ -265,22 +265,25 @@ void Coach::runCoach() {
             players.value(playerId).value()->dribble(true);
 
 
-            if(ballPosition.x() == 0 && ballPosition.y() == 0){
+            if(ballPosition.x() == 0.0f && ballPosition.y() == 0.0f){
 
-                _ak_control->inicial();
-
-            }
-
-            if(ballPosition.x()< 0 && ballPosition.x() < 1.7)
-
-            players.value(playerId).value()-> goTo(ballPosition);
+               _ak_control->inicial(getPlayer(BLUE, 0).value());
 
             }
 
+            if(ballPosition.x() < 0.0f && ballPosition.x() > -1.7f){
 
+            _ak_control->attackd(getPlayer(BLUE, 1).value(),getPlayer(BLUE, 2).value());
+            }
 
+            if(ballPosition.x() > 0.0f){
 
+                const QVector2D pontoMeia(-0.9f, 0.0f);
+                players.value(playerId).value()->goTo(pontoMeia);
 
+            }
+
+            }
 
 
         }
