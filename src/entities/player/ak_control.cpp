@@ -31,7 +31,7 @@ void ak_control::attackposition2()
         QVector2D ballPosition = _worldMap->ballPosition();
         const QVector2D pontoCerto(0.2f, -1.7f);
         _aPlayer->goTo(pontoCerto);
-        _aPlayer->rotateTo(ballPosition);
+        _aPlayer->rotateTo(ballPosition); //
     }
 }
 
