@@ -157,24 +157,9 @@ QList<QVector2D> Coach::getYellowPositions() {
 
 void Coach::runCoach() {
 
-    // if(contador >= 30){
-    //     updateDataBall();
-    //     //spdlog :: info("testando");
-    //     contador = 0;
-    // }
 
     QVector2D ballPosition = getWorldMap()->ballPosition();
-    //const QVector2D pontoCerto(3.0f, 2.0f);
-    //float distP2Ball = getPlayer(YELLOW,4).value()->getPosition().distanceToPoint(balloPosition);
 
-    // getPlayer(YELLOW,0).value()-> goTo(pontoCerto);
-    // getPlayer(YELLOW,0).value()-> rotateTo(balloPosition);
-    // getPlayer(BLUE,2).value()->rotateTo(pontoCerto);
-    // getPlayer(BLUE,2).value()->kick(3.0,false);
-    //player 5 goleiro
-    //player 0 defensor
-    //player 4 defensor
-    //player 3,1,2 atacante
 
     QMap<quint8, std::optional<Player *>> players;
     for (quint8 playerId = 0; playerId < 6; playerId++){
